@@ -4,8 +4,6 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const webpack = require('webpack');
-const faker = require('faker');
 var cors = require('cors');
 
 const indexRouter = require('./routes/index');
@@ -16,10 +14,6 @@ app.use(cors());
 
 const port = 5000;
 
-const { AccessToken } = require('twilio').jwt;
-
-const { VideoGrant } = AccessToken;
-
 // Used when generating any kind of tokens
 const twilioAccountSid = '';
 const twilioApiKey = '';
@@ -27,31 +21,11 @@ const twilioApiSecret = '';
 
 // Endpoint to generate access token
 app.get('/', (request, response) => {
-  const identity = faker.name.findName();
-  // Create an access token which we will sign and return to the client,
-  // containing the grant we just created
-  const token = new AccessToken(
-    twilioAccountSid,
-    twilioApiKey,
-    twilioApiSecret,
-  );
 
-  // Assign the generated identity to the token
-  token.identity = identity;
-  const grant = new VideoGrant();
-
-  // Grant token access to the Video API features
-  token.addGrant(grant);
-
-  // console.log(token.toJwt());
-  // console.log('token info:' + token);
-  // console.log(identity);
-
-  // Serialize the token to a JWT string and include it in a JSON response
+  // Response being sent
   response.send({
-    identity: identity,
-    token: token.toJwt(),
-  });
+    identity:  'test',
+    });
 });
 
 // view engine setup
