@@ -23,10 +23,10 @@ class App extends Component {
   render() {
     const { users } = this.state;
     return (
-      <div className="App">        
+      <div className="App">
       <h1>Start speaking, your text will appear on the screen after your first pause:</h1>
         <h1>
-          <span style={{color: 'black'}}>{this.props.finalTranscript}</span>
+          <span style={{ color: 'black' }}>{this.props.interimTranscript}</span>
         </h1>
       </div>
     );
