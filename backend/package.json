@@ -1,0 +1,33 @@
+{
+  "name": "iungo-backend",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "cookie-parser": "~1.4.3",
+    "cors": "^2.8.5",
+    "debug": "~2.6.9",
+    "dotenv": "^8.0.0",
+    "ejs": "^2.5.9",
+    "express": "~4.16.0",
+    "faker": "^4.1.0",
+    "http-errors": "~1.6.2",
+    "morgan": "~1.9.0",
+    "react-speech-recognition": "^2.0.1",
+    "twilio": "^3.30.3",
+    "twilio-video": "^2.0.0-beta9",
+    "webpack": "^4.30.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.17.2",
+    "eslint-plugin-jsx-a11y": "^6.2.1",
+    "eslint-plugin-react": "^7.12.4",
+    "nodemon": "^1.19.0"
+  }
+}
