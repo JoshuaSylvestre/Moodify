@@ -6,9 +6,12 @@
     "axios": "^0.18.0",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "react-html5-camera-photo": "^1.4.3",
     "react-scripts": "0.9.5",
     "react-speech-recognition": "^2.0.1",
+    "react-webcam": "^1.1.1",
     "serve": "^11.0.0",
+    "spotify-web-api-js": "^1.2.0",
     "translate": "^1.1.0"
   },
   "devDependencies": {
