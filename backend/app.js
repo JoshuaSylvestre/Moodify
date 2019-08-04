@@ -29,7 +29,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '/public'))).use(cookieParser());
 
 
-
 var scopes = ['user-library-read','user-library-modify'];
 var redirect_uri = process.env.REDIRECT_URI;
 var client_id = process.env.CLIENT_ID;
@@ -59,7 +58,7 @@ app.get('/', (req, res) => {
 
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
-  
+
   // your application requests authorization
   var scope = 'user-read-private user-read-email user-library-read';
 
@@ -80,7 +79,21 @@ app.get('/', (req, res) => {
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-
+app.post('/sendPhoto', (req,res) => {
+  console.log("Here");
+  /*
+    var user = req.user;
+    user.username = req.body.username;
+    user.password = req.body.password;
+    user.firstname = req.body.firstname;
+    user.lastname = req.body.lastname;
+    user.role = req.body.role;
+    user.class = req.body.class;
+    db.all('Update flowers SET', (err, rows) => {
+    res.send(rows);
+  });
+  */
+});
 app.get('/callback', function (req, res) {
 
   // your application requests refresh and access tokens
@@ -89,7 +102,7 @@ app.get('/callback', function (req, res) {
   var code = req.query.code || null;
   var state = req.query.state || null;
   var storedState = req.cookies ? req.cookies[stateKey] : null;
-  
+
   console.log('state: ' + state);
   console.log('\nstored state: ' + storedState);
   console.log('cookie: ' + req.cookies);
@@ -151,7 +164,7 @@ async function quickstart() {
 
   // Performs label detection on the image file
   const [result] = await client.faceDetection('./happy2.jpg');
-  
+
   const faces = result.faceAnnotations;
   console.log('Faces:');
   console.log(faces.length);
