@@ -37,7 +37,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '/public'))).use(cookieParser());
 
 
-
 var scopes = ['user-library-read','user-library-modify'];
 var redirect_uri = process.env.REDIRECT_URI;
 var client_id = process.env.CLIENT_ID;
@@ -52,26 +51,8 @@ var spotifyApi = new SpotifyWebApi({
 
 app.post('/retEmote', function (req, res) {
   var img = (req.body.imageString).replace(/^data:image\/png;base64,/, "");
-  saveToDisk(img).then(() => quickstart());
-  res.end();
+  saveToDisk(img).then(() => quickstart()).then((faces) => { res.send(faces);});
 });
-
-async function saveToDisk(img)
-{
-  require("fs").writeFile("input.png", img, 'base64', function (err) {
-    console.log(err);
-  });
-}
-
-var generateRandomString = function (length) {
-  var text = '';
-  var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-  for (var i = 0; i < length; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
-};
 
 // Endpoint to generate access token
 app.get('/', (req, res) => {
@@ -90,11 +71,6 @@ app.get('/', (req, res) => {
       redirect_uri: redirect_uri,
       state: state
     }));
-
-  // Response being sent
-  // response.send({
-  //   identity:  'test',
-  //   });
 });
 
 app.use('/', indexRouter);
@@ -170,17 +146,7 @@ async function quickstart(dataUri) {
   try{
     // Performs label detection on the image file
     const [result] = await client.faceDetection('input.png');
-
-    const faces = result.faceAnnotations;
-    console.log('Faces:' + faces.length);
-
-    faces.forEach((face, i) => {
-      console.log(`  Face #${i + 1}:`);
-      console.log(`    Joy: ${face.joyLikelihood}`);
-      console.log(`    Anger: ${face.angerLikelihood}`);
-      console.log(`    Sorrow: ${face.sorrowLikelihood}`);
-      console.log(`    Surprise: ${face.surpriseLikelihood}`);
-    });
+    return result.faceAnnotations;
   }
   catch(err)
   {
@@ -203,5 +169,22 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500);
   res.render('error');
 });
+
+async function saveToDisk(img) {
+  require("fs").writeFile("input.png", img, 'base64', function (err) {
+    console.log(err);
+  });
+}
+
+var generateRandomString = function (length) {
+  var text = '';
+  var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+  for (var i = 0; i < length; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+};
+
 
 module.exports = app;
