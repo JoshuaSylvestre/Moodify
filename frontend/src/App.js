@@ -7,7 +7,6 @@ const spotifyApi = new SpotifyWebApi();
 
 class App extends Component {
   constructor() {
-    
     super();
     const params = this.getHashParams();
     // console.log(params);
@@ -20,13 +19,32 @@ class App extends Component {
 
     this.state = { 
       loggedIn: token ? true: false,
-      albums: []
+      albums: [],
+      serverRoot: 'http://localhost:8888'
     };
 
   }
 
   onTakePhoto(dataUri) {
     console.log(dataUri);
+
+    fetch('/retEmote', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        imageString: dataUri
+      })
+    })
+    .then((response) => response.json())
+    .then((responseJson) => {
+      console.log(responseJson);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
   }
 
   getSavedAlbums() {
@@ -58,7 +76,7 @@ class App extends Component {
     return (
     <div className='App'>
         <div>
-          <a href='http://localhost:8888'> Login to Spotify </a>
+          <a href={this.state.serverRoot}> Login to Spotify </a>
         </div>
         <div>
         {

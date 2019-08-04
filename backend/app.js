@@ -1,10 +1,13 @@
 require('dotenv').config();
 const createError = require('http-errors');
 const express = require('express');
+const bodyParser = require('body-parser');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const querystring = require('querystring');
 const logger = require('morgan');
+const fs = require('fs').promises;
+
 var request = require('request');
 var cors = require('cors');
 
@@ -23,8 +26,13 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// Express is limiting json size, so we expand it for images
+app.use(express.json({limit: '50mb'}));
+app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '/public'))).use(cookieParser());
 
@@ -42,7 +50,18 @@ var spotifyApi = new SpotifyWebApi({
   clientSecret: client_secret
 });
 
-// var authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
+app.post('/retEmote', function (req, res) {
+  var img = (req.body.imageString).replace(/^data:image\/png;base64,/, "");
+  saveToDisk(img).then(() => quickstart());
+  res.end();
+});
+
+async function saveToDisk(img)
+{
+  require("fs").writeFile("input.png", img, 'base64', function (err) {
+    console.log(err);
+  });
+}
 
 var generateRandomString = function (length) {
   var text = '';
@@ -147,22 +166,26 @@ app.get('/callback', function (req, res) {
   }
 });
 
-async function quickstart() {
+async function quickstart(dataUri) {
+  try{
+    // Performs label detection on the image file
+    const [result] = await client.faceDetection('input.png');
 
-  // Performs label detection on the image file
-  const [result] = await client.faceDetection('./happy2.jpg');
-  
-  const faces = result.faceAnnotations;
-  console.log('Faces:');
-  console.log(faces.length);
+    const faces = result.faceAnnotations;
+    console.log('Faces:' + faces.length);
 
-  faces.forEach((face, i) => {
-    console.log(`  Face #${i + 1}:`);
-    console.log(`    Joy: ${face.joyLikelihood}`);
-    console.log(`    Anger: ${face.angerLikelihood}`);
-    console.log(`    Sorrow: ${face.sorrowLikelihood}`);
-    console.log(`    Surprise: ${face.surpriseLikelihood}`);
-  });
+    faces.forEach((face, i) => {
+      console.log(`  Face #${i + 1}:`);
+      console.log(`    Joy: ${face.joyLikelihood}`);
+      console.log(`    Anger: ${face.angerLikelihood}`);
+      console.log(`    Sorrow: ${face.sorrowLikelihood}`);
+      console.log(`    Surprise: ${face.surpriseLikelihood}`);
+    });
+  }
+  catch(err)
+  {
+    console.log(err);
+  }
 }
 
 // catch 404 and forward to error handler
