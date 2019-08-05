@@ -16,6 +16,13 @@
 
 - work in progress. Docker?
 
+# TODO:
+
+1. Finish and test creation of user playlist.
+2. Sort songs by dominant emotion in code.
+3. Add songs to playlist.
+4. Merge frontend branch.
+
 # Directory contents
 
 - frontend: React application
