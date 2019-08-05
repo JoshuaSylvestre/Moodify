@@ -21,11 +21,13 @@ class App extends Component {
       tracks: [],
       serverRoot: 'http://localhost:8888',
       emotion: {
-        joy: 'VERY_UNLIKELY',
-        sorrow: 'VERY_UNLIKELY',
-        anger: 'VERY_UNLIKELY',
-        blurred:'VERY_UNLIKELY'      
-      }
+        joy: 1, // 0
+        sorrow: 1, // 1
+        anger: 1, // 2
+      },
+      dominantEmotion: 0,
+      songs: [],
+      songsReady: false
     };
 
   }
@@ -47,36 +49,97 @@ class App extends Component {
       // console.log(responseJson);
       this.setState(prevState => {
         let emotion = Object.assign({}, prevState.emotion);
-        emotion.joy = responseJson[0].joyLikelihood;
-        emotion.sorrow = responseJson[0].sorrowLikelihood;
-        emotion.anger = responseJson[0].angerLikelihood;
-        emotion.blurred = responseJson[0].blurredLikelihood;
+
+        emotion.joy = this.getEmotionScale(responseJson[0].joyLikelihood);
+        emotion.sorrow = this.getEmotionScale(responseJson[0].sorrowLikelihood);
+        emotion.anger = this.getEmotionScale(responseJson[0].angerLikelihood);
+
         return {emotion};
       })
+    })
+    .then(() => {
+      if (this.state.emotion.joy > this.state.emotion.sorrow && this.state.emotion.joy > this.state.emotion.anger)
+      {
+        this.setState({ dominantEmotion: 0 });
+      }
+      else if (this.state.emotion.anger > this.state.emotion.joy && this.state.emotion.anger > this.state.emotion.sorrow)
+      {
+        this.setState({ dominantEmotion: 1 });
+      }
+      else
+      {
+        this.setState({ dominantEmotion: 2 });
+      }
     }).then(() => {
       let feelings = 'joy: ' + this.state.emotion.joy +
         '\nanger: ' + this.state.emotion.anger +
         '\nsorrow: ' + this.state.emotion.sorrow;
 
-      alert('Here\'s how you\'re feeling!\n' 
+      alert('Here\'s how you\'re feeling on a scale from 1 to 5!\n' 
       + feelings 
       + '\nMaking a playlist for you right now!');
     })
-    .catch((error) => {
-      console.log(error);
+    .then(() => this.getSavedTracks(0, [], 2))
+    .then(() => {
+    })
+    .catch((err) => {
+      console.log(err);
     });
   }
 
-  getSavedTracks() {
-    spotifyApi.getMySavedTracks({
-      limit: 50
-    })
-    .then((response) => {
-      this.setState({
-        tracks: response.items
+
+  getSavedTracks(i, newArray, limit) {
+    if(i * 50 >= limit)
+    {
+      this.setState({ songs: newArray, songsReady: true }, () => {
+        console.log(this.state.songs);
       });
-      console.log(this.state.tracks);
+      return;
+    }
+
+    spotifyApi.getMySavedTracks({
+      limit: 50,
+      offset: i * 50
     })
+      .then((response) => {
+        // console.log(response.items);
+        newArray.push(response.items);
+        limit = response.total;
+      }).then(() => this.getSavedTracks(i + 1, newArray, limit))
+  }
+
+  createPlayList()
+  {
+    spotifyApi.createPlaylist('Moodify Playlist', { 'public': false })
+      .then(function (data) {
+        console.log('Created playlist!');
+      }, function (err) {
+        console.log('Something went wrong!', err);
+      });
+  }
+
+  getEmotionScale(emote) {
+    switch (emote) {
+
+      case 'VERY_UNLIKELY':
+        return 1;
+
+      case 'UNLIKELY':
+        return 2;
+
+      case 'POSSIBLE':
+        return 3;
+
+      case 'LIKELY':
+        return 4;
+
+      case 'VERY_LIKELY':
+        return 5;
+
+      default:
+        return 1;
+        break;
+    }
   }
 
   getHashParams() {
