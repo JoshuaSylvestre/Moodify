@@ -2,6 +2,7 @@
 import React, { Component } from 'react';
 import SpotifyWebApi from 'spotify-web-api-js';
 import Camera from 'react-html5-camera-photo';
+import axios from 'axios';
 import 'react-html5-camera-photo/build/css/index.css';
 const spotifyApi = new SpotifyWebApi();
 
@@ -10,11 +11,20 @@ class App extends Component {
     super();
     const params = this.getHashParams();
     const token = params.access_token;
+    let id;
 
     if(token)
     {
       spotifyApi.setAccessToken(token);
     }
+
+    var options = {
+      url: 'https://api.spotify.com/v1/me',
+      headers: { 'Authorization': 'Bearer ' + token },
+      json: true
+    };
+
+
 
     this.state = { 
       loggedIn: token ? true: false,
@@ -27,14 +37,39 @@ class App extends Component {
       },
       dominantEmotion: 0,
       songs: [],
-      songsReady: false
+      songsReady: false,
+      userID: this.id,
+      userIDReady: false
     };
 
+    fetch(options.url, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    }).then((response) => response.json())
+      .then((data) => {
+        this.id = data.id;
+        // console.log(this.id);
+        this.setState({userID: this.id, userIDReady: true}, () => {
+          // console.log(this.state.userID);
+        });
+      });
+
+
+    // const userID = params.userID;
+    // this.setState({ userID: userID});
   }
+
 
   // Populates all the emotion fields after taking a photo
   onTakePhoto(dataUri) {
-    fetch('/retEmote', {
+
+    if(this.state.userID && !this.state.songsReady)
+    Promise.resolve()
+    .then(fetch('/retEmote', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -43,7 +78,7 @@ class App extends Component {
       body: JSON.stringify({
         imageString: dataUri
       })
-    })
+    }))
     .then((response) => response.json())
     .then((responseJson) => {
       // console.log(responseJson);
@@ -70,7 +105,8 @@ class App extends Component {
       {
         this.setState({ dominantEmotion: 2 });
       }
-    }).then(() => {
+    })
+    .then(() => {
       let feelings = 'joy: ' + this.state.emotion.joy +
         '\nanger: ' + this.state.emotion.anger +
         '\nsorrow: ' + this.state.emotion.sorrow;
@@ -79,20 +115,18 @@ class App extends Component {
       + feelings 
       + '\nMaking a playlist for you right now!');
     })
-    .then(() => this.getSavedTracks(0, [], 2))
-    .then(() => {
-    })
+    .then(this.getSavedTracks(0, [], 2))
     .catch((err) => {
       console.log(err);
     });
   }
-
 
   getSavedTracks(i, newArray, limit) {
     if(i * 50 >= limit)
     {
       this.setState({ songs: newArray, songsReady: true }, () => {
         console.log(this.state.songs);
+        alert('Songs Loaded!');
       });
       return;
     }
@@ -103,19 +137,35 @@ class App extends Component {
     })
       .then((response) => {
         // console.log(response.items);
-        newArray.push(response.items);
+        newArray = newArray.concat(response.items);
+        // newArray.push(response.items);
         limit = response.total;
       }).then(() => this.getSavedTracks(i + 1, newArray, limit))
   }
 
   createPlayList()
   {
-    spotifyApi.createPlaylist('Moodify Playlist', { 'public': false })
+    if(this.state.songsReady)
+    spotifyApi.createPlaylist(this.state.userID, { 'public': true, name: 'Moodify' })
       .then(function (data) {
-        console.log('Created playlist!');
+        console.log(data);
+        return data;
       }, function (err) {
         console.log('Something went wrong!', err);
+      })
+      .then((data) => {
+        console.log(data);
+        
+        spotifyApi.addTracksToPlaylist(data.id, ["" + this.state.songs[0].track.uri])
+        .then(function(data) {
+          console.log(data);
+        }, function(err)
+        {
+            console.log('Something went wrong!', err);
+        })
       });
+    else
+      alert('Wait a moment for songs to load');
   }
 
   getEmotionScale(emote) {
@@ -169,7 +219,7 @@ class App extends Component {
         <div>
         {
         this.state.loggedIn &&
-        <button onClick={() => this.getSavedTracks()}>
+        <button onClick={() => this.createPlayList()}>
           Get a playlist recommendation!
           </button>
         }
