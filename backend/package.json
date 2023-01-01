@@ -24,7 +24,7 @@
     "spotify-web-api-node": "^4.0.0",
     "twilio": "^3.30.3",
     "twilio-video": "^2.0.0-beta9",
-    "webpack": "^4.30.0"
+    "webpack": "^5.75.0"
   },
   "devDependencies": {
     "eslint": "^5.16.0",
